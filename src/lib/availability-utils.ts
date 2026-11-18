@@ -29,9 +29,30 @@ export function createWeekAvailability(
     weekId,
     weekStart: weekId,
     entries: entries ?? createEmptyEntries(),
+    notes: "",
     submissionStatus: "draft",
     submittedAt: null,
     savedAt: null,
+    deadlineOverrideStatus: "none",
+    deadlineOverrideRequestedAt: null,
+    deadlineOverrideNote: "",
+    deadlineOverrideResolvedAt: null,
+  };
+}
+
+export function normalizeWeekAvailability(
+  week: WeekAvailability,
+): WeekAvailability {
+  return {
+    ...week,
+    notes: typeof week.notes === "string" ? week.notes : "",
+    deadlineOverrideStatus: week.deadlineOverrideStatus ?? "none",
+    deadlineOverrideRequestedAt: week.deadlineOverrideRequestedAt ?? null,
+    deadlineOverrideNote:
+      typeof week.deadlineOverrideNote === "string"
+        ? week.deadlineOverrideNote
+        : "",
+    deadlineOverrideResolvedAt: week.deadlineOverrideResolvedAt ?? null,
   };
 }
 

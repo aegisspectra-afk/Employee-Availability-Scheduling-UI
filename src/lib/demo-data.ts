@@ -3,6 +3,7 @@ import { DEFAULT_SYSTEM_POLICY, EMPLOYEE, STORAGE_VERSION } from "./constants";
 import {
   createEmptyEntries,
   createWeekAvailability,
+  normalizeWeekAvailability,
 } from "./availability-utils";
 import {
   ensureWeeksForMonth,
@@ -87,9 +88,15 @@ function seedMonthWeeks(
   );
 }
 
+export const DEMO_NOTES =
+  "מעדיף לא משמרת לילה ביום שני. אם אפשר — בוקר ביום ראשון.";
+
 export function createInitialState(): PersistedState {
   const currentWeekId = getWeekId();
-  const demoWeek = createWeekAvailability(currentWeekId, createDemoEntries());
+  const demoWeek = {
+    ...createWeekAvailability(currentWeekId, createDemoEntries()),
+    notes: DEMO_NOTES,
+  };
   const weeks = seedMonthWeeks({ [currentWeekId]: demoWeek }, currentWeekId);
 
   return {
@@ -121,8 +128,11 @@ export function ensureWeek(
 
   weeks = seedMonthWeeks(weeks, weekId);
 
-  // Keep the actively selected week demo-seeded only on first create above;
-  // re-apply demo only if this is a brand-new current week without entries logic.
+  // Normalize older persisted weeks (notes / deadline override fields).
+  for (const id of Object.keys(weeks)) {
+    weeks[id] = normalizeWeekAvailability(weeks[id]);
+  }
+
   return {
     ...state,
     currentWeekId: weekId,

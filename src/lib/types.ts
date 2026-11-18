@@ -18,13 +18,23 @@ export type DatedAvailabilityEntry = {
 
 export type SubmissionStatus = "draft" | "saved" | "submitted";
 
+/** Manager override after the submission deadline has passed. */
+export type DeadlineOverrideStatus = "none" | "pending" | "approved";
+
 export type WeekAvailability = {
   weekId: string;
   weekStart: string;
   entries: AvailabilityEntry[];
+  /** Free-text notes / special shift requests for schedule builders. */
+  notes: string;
   submissionStatus: SubmissionStatus;
   submittedAt: string | null;
   savedAt: string | null;
+  /** Request that a manager reopen editing after the deadline. */
+  deadlineOverrideStatus: DeadlineOverrideStatus;
+  deadlineOverrideRequestedAt: string | null;
+  deadlineOverrideNote: string;
+  deadlineOverrideResolvedAt: string | null;
 };
 
 export type Employee = {

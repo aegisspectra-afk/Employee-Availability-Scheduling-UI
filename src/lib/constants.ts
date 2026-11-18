@@ -1,11 +1,14 @@
 import type { ShiftType } from "./types";
 
 export const STORAGE_KEY = "g1-availability-v1";
-export const STORAGE_VERSION = 4;
+export const STORAGE_VERSION = 6;
 
-/** Default system policy: employees must meet procedure before submit. */
+/** Display-only demo — interactions work locally, nothing is really submitted. */
+export const IS_DISPLAY_DEMO = true;
+
+/** Procedure checks exist for demo logic, but are not enforced in display mode. */
 export const DEFAULT_SYSTEM_POLICY = {
-  enforceAvailabilityRequirements: true,
+  enforceAvailabilityRequirements: false,
 } as const;
 
 export const DAYS = [

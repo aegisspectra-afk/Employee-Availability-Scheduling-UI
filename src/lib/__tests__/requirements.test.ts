@@ -218,20 +218,22 @@ describe("draft and submission gates", () => {
     expect(canSaveDraft()).toBe(true);
   });
 
-  it("9. submitting an incomplete form is blocked", () => {
+  it("9. display demo allows submit even when procedure is incomplete", () => {
     const entries = setMany(createEmptyEntries(), [
       { day: 0, shift: "morning", status: "available" },
     ]);
     const weeks = {
       [WEEK_ID]: createWeekAvailability(WEEK_ID, entries),
     };
-    const snapshot = evaluateRequirements(WEEK_ID, entries, weeks);
+    const snapshot = evaluateRequirements(WEEK_ID, entries, weeks, {
+      enforceAvailabilityRequirements: false,
+    });
     expect(snapshot.weekly.isComplete).toBe(false);
     expect(snapshot.procedureComplete).toBe(false);
-    expect(canSubmitRequirements(snapshot)).toBe(false);
+    expect(canSubmitRequirements(snapshot)).toBe(true);
   });
 
-  it("system override allows submit when procedure is incomplete", () => {
+  it("enforcement mode still blocks incomplete procedure when enabled", () => {
     const entries = createEmptyEntries();
     const weeks = {
       [WEEK_ID]: createWeekAvailability(WEEK_ID, entries),
@@ -239,14 +241,13 @@ describe("draft and submission gates", () => {
     const enforced = evaluateRequirements(WEEK_ID, entries, weeks, {
       enforceAvailabilityRequirements: true,
     });
-    const overridden = evaluateRequirements(WEEK_ID, entries, weeks, {
+    const demo = evaluateRequirements(WEEK_ID, entries, weeks, {
       enforceAvailabilityRequirements: false,
     });
 
     expect(enforced.procedureComplete).toBe(false);
     expect(enforced.canSubmit).toBe(false);
-    expect(overridden.procedureComplete).toBe(false);
-    expect(overridden.canSubmit).toBe(true);
+    expect(demo.canSubmit).toBe(true);
   });
 });
 

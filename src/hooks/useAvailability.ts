@@ -18,7 +18,7 @@ import {
 import { createInitialState, ensureWeek } from "@/lib/demo-data";
 import { evaluateRequirements } from "@/lib/requirements";
 import { clearState, loadState, saveState } from "@/lib/storage";
-import { shiftWeek } from "@/lib/week-utils";
+import { isDeadlinePassed, isPastWeek, shiftWeek } from "@/lib/week-utils";
 
 export type UndoSnapshot = {
   entries: AvailabilityEntry[];
@@ -59,6 +59,40 @@ export function useAvailability() {
     return state.weeks[state.currentWeekId] ?? null;
   }, [state]);
 
+  const weekClosed = useMemo(
+    () => (currentWeek ? isPastWeek(currentWeek.weekId) : false),
+    [currentWeek],
+  );
+
+  const deadlinePassed = useMemo(
+    () => (currentWeek ? isDeadlinePassed(currentWeek.weekId) : false),
+    [currentWeek],
+  );
+
+  const deadlineOverrideApproved = useMemo(
+    () => currentWeek?.deadlineOverrideStatus === "approved",
+    [currentWeek],
+  );
+
+  /** Deadline blocks edits/submit until a manager unlocks this employee/week. */
+  const deadlineLocked = useMemo(
+    () =>
+      Boolean(
+        currentWeek &&
+          !weekClosed &&
+          deadlinePassed &&
+          !deadlineOverrideApproved,
+      ),
+    [currentWeek, weekClosed, deadlinePassed, deadlineOverrideApproved],
+  );
+
+  const isReadOnly = useMemo(() => {
+    if (!currentWeek) return true;
+    if (weekClosed) return true;
+    if (deadlineLocked) return true;
+    return currentWeek.submissionStatus === "submitted";
+  }, [currentWeek, weekClosed, deadlineLocked]);
+
   const summary = useMemo(
     () => getSummary(currentWeek?.entries ?? []),
     [currentWeek],
@@ -70,22 +104,23 @@ export function useAvailability() {
       currentWeek.weekId,
       currentWeek.entries,
       state.weeks,
-      {
-        enforceAvailabilityRequirements:
-          state.policy?.enforceAvailabilityRequirements !== false,
-      },
+      { enforceAvailabilityRequirements: false },
     );
   }, [state, currentWeek]);
 
   const updateCurrentWeek = useCallback(
     (
       updater: (week: WeekAvailability) => WeekAvailability,
-      options?: { markDirty?: boolean },
+      options?: { markDirty?: boolean; allowClosed?: boolean },
     ) => {
       setState((prev) => {
         if (!prev) return prev;
         const week = prev.weeks[prev.currentWeekId];
         if (!week) return prev;
+
+        if (!options?.allowClosed && isPastWeek(week.weekId)) {
+          return prev;
+        }
 
         let nextWeek = updater(week);
         if (
@@ -113,6 +148,21 @@ export function useAvailability() {
 
   const toggleCell = useCallback(
     (day: number, shift: ShiftType) => {
+      if (!currentWeek || isPastWeek(currentWeek.weekId)) {
+        setToast("שבוע זה נסגר ולא ניתן לערוך אותו");
+        return;
+      }
+      if (
+        isDeadlinePassed(currentWeek.weekId) &&
+        currentWeek.deadlineOverrideStatus !== "approved"
+      ) {
+        setToast("מועד ההגשה עבר — בקשו מהמנהל לפתוח אילוץ לעריכה");
+        return;
+      }
+      if (currentWeek.submissionStatus === "submitted") {
+        setToast("השבוע הוגש — לחץ על עריכה מחדש כדי לשנות");
+        return;
+      }
       updateCurrentWeek((week) => {
         const entry = week.entries.find(
           (e) => e.day === day && e.shift === shift,
@@ -125,22 +175,32 @@ export function useAvailability() {
       });
       setUndo(null);
     },
-    [updateCurrentWeek],
+    [currentWeek, updateCurrentWeek],
   );
 
   const setCellStatus = useCallback(
     (day: number, shift: ShiftType, status: AvailabilityStatus) => {
+      if (!currentWeek || isReadOnly) return;
       updateCurrentWeek((week) => ({
         ...week,
         entries: setEntryStatus(week.entries, day, shift, status),
       }));
     },
-    [updateCurrentWeek],
+    [currentWeek, isReadOnly, updateCurrentWeek],
   );
 
   const applyBulk = useCallback(
     (status: AvailabilityStatus, label: string) => {
-      if (!currentWeek) return;
+      if (!currentWeek || isReadOnly) {
+        setToast(
+          weekClosed
+            ? "שבוע זה נסגר ולא ניתן לערוך אותו"
+            : deadlineLocked
+              ? "מועד ההגשה עבר — בקשו מהמנהל לפתוח אילוץ לעריכה"
+              : "השבוע הוגש — לחץ על עריכה מחדש כדי לשנות",
+        );
+        return;
+      }
       setUndo({ entries: cloneEntries(currentWeek.entries), label });
       updateCurrentWeek((week) => ({
         ...week,
@@ -148,7 +208,18 @@ export function useAvailability() {
       }));
       setToast(label);
     },
-    [currentWeek, updateCurrentWeek],
+    [currentWeek, isReadOnly, weekClosed, deadlineLocked, updateCurrentWeek],
+  );
+
+  const setNotes = useCallback(
+    (notes: string) => {
+      if (!currentWeek || isReadOnly) return;
+      updateCurrentWeek((week) => ({
+        ...week,
+        notes,
+      }));
+    },
+    [currentWeek, isReadOnly, updateCurrentWeek],
   );
 
   const clearSelections = useCallback(() => {
@@ -164,7 +235,7 @@ export function useAvailability() {
   }, [applyBulk]);
 
   const undoBulk = useCallback(() => {
-    if (!undo) return;
+    if (!undo || isReadOnly) return;
     const snapshot = undo.entries;
     updateCurrentWeek((week) => ({
       ...week,
@@ -172,10 +243,19 @@ export function useAvailability() {
     }));
     setUndo(null);
     setToast("השינוי בוטל");
-  }, [undo, updateCurrentWeek]);
+  }, [undo, isReadOnly, updateCurrentWeek]);
 
   const copyPreviousWeek = useCallback(() => {
-    if (!state || !currentWeek) return;
+    if (!state || !currentWeek || isReadOnly) {
+      setToast(
+        weekClosed
+          ? "שבוע זה נסגר ולא ניתן לערוך אותו"
+          : deadlineLocked
+            ? "מועד ההגשה עבר — בקשו מהמנהל לפתוח אילוץ לעריכה"
+            : "השבוע הוגש — לחץ על עריכה מחדש כדי לשנות",
+      );
+      return;
+    }
     setUndo({
       entries: cloneEntries(currentWeek.entries),
       label: "העתקת שבוע קודם",
@@ -185,9 +265,24 @@ export function useAvailability() {
       entries: cloneEntries(state.previousWeekTemplate),
     }));
     setToast("הועתק משבוע קודם");
-  }, [state, currentWeek, updateCurrentWeek]);
+  }, [
+    state,
+    currentWeek,
+    isReadOnly,
+    weekClosed,
+    deadlineLocked,
+    updateCurrentWeek,
+  ]);
 
   const saveDraft = useCallback(() => {
+    if (!currentWeek || weekClosed) {
+      setToast("שבוע זה נסגר ולא ניתן לשמור אותו");
+      return;
+    }
+    if (deadlineLocked) {
+      setToast("מועד ההגשה עבר — בקשו מהמנהל לפתוח אילוץ לעריכה");
+      return;
+    }
     const now = new Date().toISOString();
     updateCurrentWeek(
       (week) => ({
@@ -199,21 +294,16 @@ export function useAvailability() {
       { markDirty: false },
     );
     setToast("הטיוטה נשמרה בהצלחה");
-  }, [updateCurrentWeek]);
+  }, [currentWeek, weekClosed, deadlineLocked, updateCurrentWeek]);
 
   const submitAvailability = useCallback((): boolean => {
-    if (!state || !currentWeek) return false;
-    const snapshot = evaluateRequirements(
-      currentWeek.weekId,
-      currentWeek.entries,
-      state.weeks,
-      {
-        enforceAvailabilityRequirements:
-          state.policy?.enforceAvailabilityRequirements !== false,
-      },
-    );
-    if (!snapshot.canSubmit) {
-      setToast("לא ניתן לשלוח — יש להשלים את נוהל הזמינות");
+    if (!currentWeek) return false;
+    if (weekClosed) {
+      setToast("שבוע זה נסגר ולא ניתן לשלוח אותו");
+      return false;
+    }
+    if (deadlineLocked) {
+      setToast("מועד ההגשה עבר — בקשו מהמנהל לפתוח אילוץ לעריכה");
       return false;
     }
 
@@ -228,9 +318,86 @@ export function useAvailability() {
       { markDirty: false },
     );
     setUndo(null);
-    setToast("הזמינות נשלחה בהצלחה");
+    setToast("הדגמת שליחה הושלמה (דמו לתצוגה)");
     return true;
-  }, [state, currentWeek, updateCurrentWeek]);
+  }, [currentWeek, weekClosed, deadlineLocked, updateCurrentWeek]);
+
+  const requestDeadlineOverride = useCallback(
+    (note = "") => {
+      if (!currentWeek || weekClosed) {
+        setToast("שבוע זה נסגר ולא ניתן לבקש פתיחה");
+        return false;
+      }
+      if (!isDeadlinePassed(currentWeek.weekId)) {
+        setToast("מועד ההגשה עדיין פתוח — אין צורך בבקשה");
+        return false;
+      }
+      if (currentWeek.deadlineOverrideStatus === "approved") {
+        setToast("האילוץ כבר נפתח על ידי המנהל");
+        return false;
+      }
+      if (currentWeek.deadlineOverrideStatus === "pending") {
+        setToast("הבקשה כבר ממתינה לאישור מנהל");
+        return false;
+      }
+
+      const now = new Date().toISOString();
+      updateCurrentWeek(
+        (week) => ({
+          ...week,
+          deadlineOverrideStatus: "pending",
+          deadlineOverrideRequestedAt: now,
+          deadlineOverrideNote: note.trim(),
+          deadlineOverrideResolvedAt: null,
+        }),
+        { markDirty: false },
+      );
+      setToast("הבקשה נשלחה למנהל (דמו)");
+      return true;
+    },
+    [currentWeek, weekClosed, updateCurrentWeek],
+  );
+
+  const approveDeadlineOverride = useCallback(() => {
+    if (!currentWeek || weekClosed) {
+      setToast("לא ניתן לאשר פתיחה לשבוע סגור");
+      return;
+    }
+    if (currentWeek.deadlineOverrideStatus !== "pending") {
+      setToast("אין בקשה ממתינה לאישור");
+      return;
+    }
+    const now = new Date().toISOString();
+    updateCurrentWeek(
+      (week) => ({
+        ...week,
+        deadlineOverrideStatus: "approved",
+        deadlineOverrideResolvedAt: now,
+      }),
+      { markDirty: false },
+    );
+    setToast("האילוץ נפתח — העובד יכול להגיש זמינות");
+  }, [currentWeek, weekClosed, updateCurrentWeek]);
+
+  const reopenForEdit = useCallback(() => {
+    if (!currentWeek || weekClosed) {
+      setToast("שבוע זה נסגר ולא ניתן לפתוח אותו לעריכה");
+      return;
+    }
+    if (deadlineLocked) {
+      setToast("מועד ההגשה עבר — בקשו מהמנהל לפתוח אילוץ לעריכה");
+      return;
+    }
+    updateCurrentWeek(
+      (week) => ({
+        ...week,
+        submissionStatus: "draft",
+        submittedAt: null,
+      }),
+      { markDirty: false },
+    );
+    setToast("השבוע נפתח מחדש לעריכה");
+  }, [currentWeek, weekClosed, deadlineLocked, updateCurrentWeek]);
 
   const goToWeek = useCallback((delta: number) => {
     setState((prev) => {
@@ -255,6 +422,10 @@ export function useAvailability() {
     currentWeek,
     summary,
     requirements,
+    weekClosed,
+    deadlinePassed,
+    deadlineLocked,
+    isReadOnly,
     undo,
     toast,
     clearToast: () => setToast(null),
@@ -263,10 +434,14 @@ export function useAvailability() {
     markAllAvailable,
     markAllUnavailable,
     clearSelections,
+    setNotes,
     undoBulk,
     copyPreviousWeek,
     saveDraft,
     submitAvailability,
+    requestDeadlineOverride,
+    approveDeadlineOverride,
+    reopenForEdit,
     goToWeek,
     resetDemo,
   };

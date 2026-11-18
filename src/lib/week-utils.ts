@@ -24,6 +24,27 @@ export function shiftWeek(weekId: string, delta: number): string {
   return getWeekId(addWeeks(parseWeekId(weekId), delta));
 }
 
+/**
+ * Past weeks are closed once a new week begins.
+ * Example: after 15–21 Nov ends, that week can no longer be edited.
+ */
+export function isPastWeek(weekId: string, now: Date = new Date()): boolean {
+  return weekId < getWeekId(now);
+}
+
+export function isWeekendDayIndex(dayIndex: number): boolean {
+  return dayIndex === 5 || dayIndex === 6;
+}
+
+export function getWeekEnd(weekId: string): Date {
+  return addDays(parseWeekId(weekId), 6);
+}
+
+export function formatClosedWeekMessage(weekId: string): string {
+  const end = format(getWeekEnd(weekId), "d בMMMM", { locale: he });
+  return `השבוע הסתיים ב־${end} ונסגר לעריכה`;
+}
+
 export function getWeekDates(weekId: string): Date[] {
   const start = parseWeekId(weekId);
   return Array.from({ length: 7 }, (_, i) => addDays(start, i));

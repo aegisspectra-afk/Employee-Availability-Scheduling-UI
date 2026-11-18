@@ -52,9 +52,9 @@ export function AvailabilityCell({
       aria-label={`${dayLabel} ${dateLabel}, משמרת ${shiftLabel}: ${visual.label}. לחץ לשינוי`}
       aria-pressed={status === "available"}
       className={[
-        "group relative flex h-14 w-full min-w-[4.5rem] flex-col items-center justify-center gap-0.5 rounded-xl border-2 transition-colors duration-150",
+        "group relative flex h-11 w-full min-w-[3.5rem] flex-col items-center justify-center gap-0.5 rounded-lg border-2 transition-colors duration-150",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
-        "sm:h-16 md:h-[4.5rem]",
+        "sm:h-12 md:h-14",
         visual.cell,
         disabled ? "cursor-not-allowed opacity-60" : "cursor-pointer",
       ].join(" ")}
@@ -67,12 +67,12 @@ export function AvailabilityCell({
         className={visual.icon}
       >
         <Icon
-          className="h-5 w-5 sm:h-[1.35rem] sm:w-[1.35rem]"
+          className="h-4 w-4 sm:h-[1.1rem] sm:w-[1.1rem]"
           strokeWidth={2.5}
           aria-hidden
         />
       </motion.span>
-      <span className="hidden text-[10px] font-medium leading-none sm:block md:text-[11px]">
+      <span className="hidden text-[9px] font-medium leading-none md:block">
         {visual.label}
       </span>
     </motion.button>

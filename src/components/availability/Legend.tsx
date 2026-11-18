@@ -23,7 +23,6 @@ export function Legend() {
       className="flex flex-wrap items-center gap-3 text-xs text-slate-500"
       aria-label="מקרא צבעים"
     >
-      <span className="font-medium text-slate-600">מקרא:</span>
       {items.map(({ label, className, Icon }) => (
         <span key={label} className="inline-flex items-center gap-1.5">
           <span
