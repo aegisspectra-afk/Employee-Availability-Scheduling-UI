@@ -12,13 +12,15 @@ const heebo = Heebo({
 export const metadata: Metadata = {
   title: "הגשת זמינות שבועית | G1",
   description:
-    "ממשק הגשת זמינות שבועית לעובדים — אב־טיפוס מקצועי לפלטפורמת תזמון כוח אדם",
+    "ממשק הגשת זמינות עובדים — אב־טיפוס מקצועי לפלטפורמת תזמון כוח אדם",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="he" dir="rtl" className={`${heebo.variable} h-full antialiased`}>
-      <body className="min-h-full font-sans">{children}</body>
+      <body className="min-h-full bg-background font-sans text-foreground">
+        {children}
+      </body>
     </html>
   );
 }

@@ -14,7 +14,7 @@ export function createEmptyEntries(): AvailabilityEntry[] {
       entries.push({
         day: day.index,
         shift: shift.type,
-        status: "unset",
+        status: "unavailable",
       });
     }
   }
@@ -44,7 +44,7 @@ export function getEntry(
     entries.find((e) => e.day === day && e.shift === shift) ?? {
       day,
       shift,
-      status: "unset",
+      status: "unavailable",
     }
   );
 }
@@ -63,9 +63,7 @@ export function setEntryStatus(
 }
 
 export function toggleStatus(current: AvailabilityStatus): AvailabilityStatus {
-  if (current === "unset") return "available";
-  if (current === "available") return "unavailable";
-  return "unset";
+  return current === "available" ? "unavailable" : "available";
 }
 
 export function setAllStatus(
@@ -78,11 +76,9 @@ export function setAllStatus(
 export function getSummary(entries: AvailabilityEntry[]): AvailabilitySummary {
   const available = entries.filter((e) => e.status === "available").length;
   const unavailable = entries.filter((e) => e.status === "unavailable").length;
-  const unset = entries.filter((e) => e.status === "unset").length;
   const total = entries.length;
-  const completionPercent = Math.round(((total - unset) / total) * 100);
 
-  return { available, unavailable, unset, total, completionPercent };
+  return { available, unavailable, total };
 }
 
 export function cloneEntries(entries: AvailabilityEntry[]): AvailabilityEntry[] {

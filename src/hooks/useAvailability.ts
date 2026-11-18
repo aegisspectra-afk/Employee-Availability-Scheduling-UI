@@ -16,6 +16,7 @@ import {
   toggleStatus,
 } from "@/lib/availability-utils";
 import { createInitialState, ensureWeek } from "@/lib/demo-data";
+import { evaluateRequirements } from "@/lib/requirements";
 import { clearState, loadState, saveState } from "@/lib/storage";
 import { shiftWeek } from "@/lib/week-utils";
 
@@ -63,6 +64,19 @@ export function useAvailability() {
     [currentWeek],
   );
 
+  const requirements = useMemo(() => {
+    if (!state || !currentWeek) return null;
+    return evaluateRequirements(
+      currentWeek.weekId,
+      currentWeek.entries,
+      state.weeks,
+      {
+        enforceAvailabilityRequirements:
+          state.policy?.enforceAvailabilityRequirements !== false,
+      },
+    );
+  }, [state, currentWeek]);
+
   const updateCurrentWeek = useCallback(
     (
       updater: (week: WeekAvailability) => WeekAvailability,
@@ -103,7 +117,7 @@ export function useAvailability() {
         const entry = week.entries.find(
           (e) => e.day === day && e.shift === shift,
         );
-        const next = toggleStatus(entry?.status ?? "unset");
+        const next = toggleStatus(entry?.status ?? "unavailable");
         return {
           ...week,
           entries: setEntryStatus(week.entries, day, shift, next),
@@ -138,7 +152,7 @@ export function useAvailability() {
   );
 
   const clearSelections = useCallback(() => {
-    applyBulk("unset", "כל הבחירות נוקו");
+    applyBulk("unavailable", "כל המשמרות סומנו כלא זמינות");
   }, [applyBulk]);
 
   const markAllAvailable = useCallback(() => {
@@ -187,7 +201,22 @@ export function useAvailability() {
     setToast("הטיוטה נשמרה בהצלחה");
   }, [updateCurrentWeek]);
 
-  const submitAvailability = useCallback(() => {
+  const submitAvailability = useCallback((): boolean => {
+    if (!state || !currentWeek) return false;
+    const snapshot = evaluateRequirements(
+      currentWeek.weekId,
+      currentWeek.entries,
+      state.weeks,
+      {
+        enforceAvailabilityRequirements:
+          state.policy?.enforceAvailabilityRequirements !== false,
+      },
+    );
+    if (!snapshot.canSubmit) {
+      setToast("לא ניתן לשלוח — יש להשלים את נוהל הזמינות");
+      return false;
+    }
+
     const now = new Date().toISOString();
     updateCurrentWeek(
       (week) => ({
@@ -200,17 +229,14 @@ export function useAvailability() {
     );
     setUndo(null);
     setToast("הזמינות נשלחה בהצלחה");
-  }, [updateCurrentWeek]);
+    return true;
+  }, [state, currentWeek, updateCurrentWeek]);
 
   const goToWeek = useCallback((delta: number) => {
     setState((prev) => {
       if (!prev) return prev;
       const nextId = shiftWeek(prev.currentWeekId, delta);
-      const withWeek = ensureWeek(
-        { ...prev, currentWeekId: nextId },
-        nextId,
-      );
-      return withWeek;
+      return ensureWeek({ ...prev, currentWeekId: nextId }, nextId);
     });
     setUndo(null);
   }, []);
@@ -228,6 +254,7 @@ export function useAvailability() {
     state,
     currentWeek,
     summary,
+    requirements,
     undo,
     toast,
     clearToast: () => setToast(null),

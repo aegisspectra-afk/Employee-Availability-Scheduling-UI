@@ -43,13 +43,13 @@ export function formatDayHeader(date: Date): { dayLabel: string; dateLabel: stri
   };
 }
 
-/** Deadline: Thursday 18:00 of the week before the target week. */
+/** Deadline: Wednesday 10:00 of the week before the target week. */
 export function getSubmissionDeadline(weekId: string): Date {
   const weekStart = parseWeekId(weekId);
-  // Deadline is Thursday of the previous week at 18:00
-  const prevThursday = addDays(weekStart, -3);
-  prevThursday.setHours(18, 0, 0, 0);
-  return prevThursday;
+  // Previous week's Wednesday = Sunday − 4 days
+  const prevWednesday = addDays(weekStart, -4);
+  prevWednesday.setHours(10, 0, 0, 0);
+  return prevWednesday;
 }
 
 export function formatDeadline(weekId: string): string {

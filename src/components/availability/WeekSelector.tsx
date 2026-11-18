@@ -9,16 +9,13 @@ type WeekSelectorProps = {
   onNext: () => void;
 };
 
+const navBtn =
+  "inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 shadow-sm transition hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40";
+
 export function WeekSelector({ weekId, onPrev, onNext }: WeekSelectorProps) {
   return (
     <div className="flex items-center gap-2 sm:gap-3">
-      <button
-        type="button"
-        onClick={onPrev}
-        aria-label="שבוע קודם"
-        className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 shadow-sm transition hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40"
-      >
-        {/* RTL: previous week is visually on the right, chevron points that way */}
+      <button type="button" onClick={onPrev} aria-label="שבוע קודם" className={navBtn}>
         <ChevronRight className="h-4.5 w-4.5" aria-hidden />
       </button>
 
@@ -34,12 +31,7 @@ export function WeekSelector({ weekId, onPrev, onNext }: WeekSelectorProps) {
         </div>
       </div>
 
-      <button
-        type="button"
-        onClick={onNext}
-        aria-label="שבוע הבא"
-        className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 shadow-sm transition hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40"
-      >
+      <button type="button" onClick={onNext} aria-label="שבוע הבא" className={navBtn}>
         <ChevronLeft className="h-4.5 w-4.5" aria-hidden />
       </button>
     </div>

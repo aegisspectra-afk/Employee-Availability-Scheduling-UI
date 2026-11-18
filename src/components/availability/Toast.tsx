@@ -25,7 +25,9 @@ export function Toast({ message, onDismiss }: ToastProps) {
             <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
               <Check className="h-4 w-4" aria-hidden />
             </span>
-            <p className="flex-1 text-sm font-medium text-slate-800">{message}</p>
+            <p className="flex-1 text-sm font-medium text-slate-800">
+              {message}
+            </p>
             <button
               type="button"
               onClick={onDismiss}

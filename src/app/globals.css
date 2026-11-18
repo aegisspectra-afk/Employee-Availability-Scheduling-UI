@@ -7,6 +7,7 @@
   --surface: #ffffff;
   --border: #e2e8f0;
   --muted: #64748b;
+  --page-gradient: linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%);
 }
 
 @theme inline {
@@ -21,13 +22,11 @@ body {
   font-family: var(--font-heebo), system-ui, sans-serif;
 }
 
-/* Improve touch targets and focus visibility */
 button:focus-visible,
 [role="button"]:focus-visible {
   outline: none;
 }
 
-/* Subtle scrollbar for mobile day scroller */
 .overflow-x-auto {
   scrollbar-width: thin;
   scrollbar-color: #cbd5e1 transparent;

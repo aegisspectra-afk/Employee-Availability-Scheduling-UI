@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, Minus, X } from "lucide-react";
+import { Check, X } from "lucide-react";
 import { motion } from "framer-motion";
 import type { AvailabilityStatus, ShiftType } from "@/lib/types";
 import { DAYS, SHIFTS, STATUS_LABELS } from "@/lib/constants";
@@ -28,11 +28,6 @@ const styles: Record<
     icon: "text-rose-600",
     label: STATUS_LABELS.unavailable,
   },
-  unset: {
-    cell: "bg-slate-50 border-slate-200 text-slate-400 hover:bg-slate-100 hover:border-slate-300 focus-visible:ring-blue-500/30",
-    icon: "text-slate-300",
-    label: STATUS_LABELS.unset,
-  },
 };
 
 export function AvailabilityCell({
@@ -46,9 +41,7 @@ export function AvailabilityCell({
   const dayLabel = DAYS.find((d) => d.index === day)?.label ?? "";
   const shiftLabel = SHIFTS.find((s) => s.type === shift)?.label ?? "";
   const visual = styles[status];
-
-  const Icon =
-    status === "available" ? Check : status === "unavailable" ? X : Minus;
+  const Icon = status === "available" ? Check : X;
 
   return (
     <motion.button
@@ -57,7 +50,7 @@ export function AvailabilityCell({
       onClick={onToggle}
       disabled={disabled}
       aria-label={`${dayLabel} ${dateLabel}, משמרת ${shiftLabel}: ${visual.label}. לחץ לשינוי`}
-      aria-pressed={status !== "unset"}
+      aria-pressed={status === "available"}
       className={[
         "group relative flex h-14 w-full min-w-[4.5rem] flex-col items-center justify-center gap-0.5 rounded-xl border-2 transition-colors duration-150",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
@@ -75,7 +68,7 @@ export function AvailabilityCell({
       >
         <Icon
           className="h-5 w-5 sm:h-[1.35rem] sm:w-[1.35rem]"
-          strokeWidth={status === "unset" ? 1.75 : 2.5}
+          strokeWidth={2.5}
           aria-hidden
         />
       </motion.span>

@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  Copy,
-  Eraser,
-  RotateCcw,
-  Save,
-  Send,
-} from "lucide-react";
+import { Copy, Eraser, RotateCcw, Save, Send } from "lucide-react";
 
 type ActionBarProps = {
   onClear: () => void;
@@ -17,6 +11,9 @@ type ActionBarProps = {
   isSubmitted: boolean;
   canSubmit: boolean;
 };
+
+const secondaryBtn =
+  "inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40";
 
 export function ActionBar({
   onClear,
@@ -34,19 +31,11 @@ export function ActionBar({
     >
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex flex-wrap gap-2">
-          <button
-            type="button"
-            onClick={onClear}
-            className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40"
-          >
+          <button type="button" onClick={onClear} className={secondaryBtn}>
             <Eraser className="h-4 w-4" aria-hidden />
             נקה בחירות
           </button>
-          <button
-            type="button"
-            onClick={onCopyPrevious}
-            className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40"
-          >
+          <button type="button" onClick={onCopyPrevious} className={secondaryBtn}>
             <Copy className="h-4 w-4" aria-hidden />
             העתק שבוע קודם
           </button>
@@ -72,8 +61,17 @@ export function ActionBar({
           <button
             type="button"
             onClick={onSubmit}
-            disabled={!canSubmit && isSubmitted}
-            className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50 disabled:cursor-not-allowed disabled:opacity-50 sm:flex-none"
+            className={[
+              "inline-flex flex-1 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50 sm:flex-none",
+              canSubmit
+                ? "bg-blue-600 hover:bg-blue-700"
+                : "bg-blue-600/90 hover:bg-blue-700",
+            ].join(" ")}
+            title={
+              canSubmit
+                ? undefined
+                : "השליחה תיחסם עד להשלמת נוהל הזמינות"
+            }
           >
             <Send className="h-4 w-4" aria-hidden />
             {isSubmitted ? "שלח שוב" : "שליחת זמינות"}

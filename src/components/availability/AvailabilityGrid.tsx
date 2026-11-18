@@ -58,7 +58,6 @@ export function AvailabilityGrid({
         />
       </div>
 
-      {/* Desktop / tablet: full 7-day CSS grid */}
       <div className="hidden md:block">
         <div
           className="grid gap-2"
@@ -82,7 +81,9 @@ export function AvailabilityGrid({
                 <p className="text-sm font-semibold text-slate-800">
                   {DAYS[dayIndex].label}
                 </p>
-                <p className="text-[11px] text-slate-400">{dateLabel}</p>
+                <p className="text-[11px] text-slate-400">
+                  {dateLabel}
+                </p>
                 <span className="sr-only">{dayLabel}</span>
               </div>
             );
@@ -97,7 +98,9 @@ export function AvailabilityGrid({
                 <span className="text-sm font-semibold text-slate-800">
                   {shift.label}
                 </span>
-                <span className="text-[11px] text-slate-400">{shift.time}</span>
+                <span className="text-[11px] text-slate-400">
+                  {shift.time}
+                </span>
               </div>
               {DAYS.map((day) => {
                 const entry = getEntry(entries, day.index, shift.type);
@@ -120,7 +123,6 @@ export function AvailabilityGrid({
         </div>
       </div>
 
-      {/* Mobile: horizontal day scroller with sticky shift labels */}
       <div className="md:hidden">
         <div className="-mx-1 overflow-x-auto pb-2">
           <div className="inline-grid min-w-[40rem] grid-cols-[4.75rem_repeat(7,minmax(4.75rem,1fr))] gap-2 px-1">
@@ -137,7 +139,9 @@ export function AvailabilityGrid({
                   <p className="text-xs font-semibold text-slate-800">
                     {DAYS[dayIndex].short}
                   </p>
-                  <p className="text-[10px] text-slate-400">{dateLabel}</p>
+                  <p className="text-[10px] text-slate-400">
+                    {dateLabel}
+                  </p>
                 </div>
               );
             })}

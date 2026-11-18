@@ -30,9 +30,12 @@ function StatusBadge({
   savedAt: string | null;
 }) {
   const styles = {
-    draft: "bg-slate-100 text-slate-600 border-slate-200",
-    saved: "bg-amber-50 text-amber-700 border-amber-200",
-    submitted: "bg-emerald-50 text-emerald-700 border-emerald-200",
+    draft:
+      "bg-slate-100 text-slate-600 border-slate-200",
+    saved:
+      "bg-amber-50 text-amber-700 border-amber-200",
+    submitted:
+      "bg-emerald-50 text-emerald-700 border-emerald-200",
   } as const;
 
   const detail =
@@ -50,9 +53,7 @@ function StatusBadge({
       ].join(" ")}
     >
       <span className="text-xs font-semibold">{SUBMISSION_STATUS_LABELS[status]}</span>
-      {detail && (
-        <span className="text-[11px] opacity-80">{detail}</span>
-      )}
+      {detail && <span className="text-[11px] opacity-80">{detail}</span>}
     </div>
   );
 }
@@ -96,7 +97,9 @@ export function AvailabilityHeader({
                 <p className="text-sm font-semibold text-slate-900">
                   {employee.name}
                 </p>
-                <p className="text-xs text-slate-500">{employee.role}</p>
+                <p className="text-xs text-slate-500">
+                  {employee.role}
+                </p>
               </div>
             </div>
             <StatusBadge

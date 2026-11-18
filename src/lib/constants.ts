@@ -1,7 +1,12 @@
 import type { ShiftType } from "./types";
 
 export const STORAGE_KEY = "g1-availability-v1";
-export const STORAGE_VERSION = 1;
+export const STORAGE_VERSION = 4;
+
+/** Default system policy: employees must meet procedure before submit. */
+export const DEFAULT_SYSTEM_POLICY = {
+  enforceAvailabilityRequirements: true,
+} as const;
 
 export const DAYS = [
   { index: 0, label: "ראשון", short: "א׳" },
@@ -31,7 +36,6 @@ export const EMPLOYEE = {
 export const STATUS_LABELS = {
   available: "זמין",
   unavailable: "לא זמין",
-  unset: "לא נבחר",
 } as const;
 
 export const SUBMISSION_STATUS_LABELS = {

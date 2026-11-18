@@ -5,7 +5,6 @@ import { Loader2 } from "lucide-react";
 import { useAvailability } from "@/hooks/useAvailability";
 import { AvailabilityHeader } from "./AvailabilityHeader";
 import { AvailabilityGrid } from "./AvailabilityGrid";
-import { ShiftSummary } from "./ShiftSummary";
 import { ActionBar } from "./ActionBar";
 import { SubmissionDialog } from "./SubmissionDialog";
 import { SubmissionSuccess } from "./SubmissionSuccess";
@@ -17,6 +16,7 @@ export function AvailabilityPage() {
     state,
     currentWeek,
     summary,
+    requirements,
     undo,
     toast,
     clearToast,
@@ -36,7 +36,7 @@ export function AvailabilityPage() {
   const [showSuccess, setShowSuccess] = useState(false);
   const [successAt, setSuccessAt] = useState<string | null>(null);
 
-  if (!isHydrated || !state || !currentWeek) {
+  if (!isHydrated || !state || !currentWeek || !requirements) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-slate-50">
         <div className="flex flex-col items-center gap-3 text-slate-500">
@@ -52,7 +52,8 @@ export function AvailabilityPage() {
   };
 
   const handleConfirmSubmit = () => {
-    submitAvailability();
+    const ok = submitAvailability();
+    if (!ok) return;
     const now = new Date().toISOString();
     setSuccessAt(now);
     setDialogOpen(false);
@@ -60,7 +61,7 @@ export function AvailabilityPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[linear-gradient(180deg,#f8fafc_0%,#eef2f7_100%)] text-slate-900">
+    <div className="min-h-screen bg-[image:var(--page-gradient)] text-slate-900">
       <AvailabilityHeader
         employee={state.employee}
         weekId={currentWeek.weekId}
@@ -72,8 +73,6 @@ export function AvailabilityPage() {
       />
 
       <main className="mx-auto max-w-7xl space-y-4 px-4 py-5 sm:px-6 sm:py-6 lg:px-8 lg:py-8">
-        <ShiftSummary summary={summary} />
-
         <AvailabilityGrid
           weekId={currentWeek.weekId}
           entries={currentWeek.entries}
@@ -91,7 +90,7 @@ export function AvailabilityPage() {
           onSubmit={handleSubmitClick}
           onResetDemo={resetDemo}
           isSubmitted={currentWeek.submissionStatus === "submitted"}
-          canSubmit
+          canSubmit={requirements.canSubmit}
         />
 
         <footer className="pb-8 pt-2 text-center text-xs text-slate-400">
@@ -103,6 +102,7 @@ export function AvailabilityPage() {
         open={dialogOpen}
         weekId={currentWeek.weekId}
         summary={summary}
+        requirements={requirements}
         onConfirm={handleConfirmSubmit}
         onClose={() => setDialogOpen(false)}
       />

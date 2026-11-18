@@ -1,22 +1,19 @@
 "use client";
 
-import { Check, Minus, X } from "lucide-react";
+import { Check, X } from "lucide-react";
 
 const items = [
   {
     label: "זמין",
-    className: "bg-emerald-50 border-emerald-400 text-emerald-700",
+    className:
+      "bg-emerald-50 border-emerald-400 text-emerald-700",
     Icon: Check,
   },
   {
     label: "לא זמין",
-    className: "bg-rose-50 border-rose-400 text-rose-700",
+    className:
+      "bg-rose-50 border-rose-400 text-rose-700",
     Icon: X,
-  },
-  {
-    label: "לא נבחר",
-    className: "bg-slate-50 border-slate-200 text-slate-400",
-    Icon: Minus,
   },
 ] as const;
 
@@ -38,7 +35,7 @@ export function Legend() {
         </span>
       ))}
       <span className="hidden text-slate-400 sm:inline">
-        · לחץ על תא כדי לעבור בין המצבים
+        · לחץ על תא כדי להחליף בין זמין ללא זמין
       </span>
     </div>
   );
